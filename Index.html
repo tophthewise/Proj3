@@ -41,11 +41,29 @@
 <script src="https://d3js.org/topojson.v2.min.js"></script>
 
 <script>
-ALLTHEINFO = [];
 
-d3.csv('HIV_Cases_CDC.csv', function(d) {
-	HIVdata = d;  
-  
+d3.queue()
+.defer(d3.csv,'HIV_Cases_CDC.csv')
+.defer(d3.csv,'Unemployment.csv')
+.defer(d3.tsv, 'us-county-names.tsv')
+.await(function(error,hivData,unemploymentData,countyNames){
+	// console.log(hivData);
+	// console.log(unemploymentData);
+	// console.log(countyNames);
+important_Data=[];
+
+countyNames.forEach(function(county_obj){
+county_id = county_obj.id;
+	unemploymentData.forEach(function(unemp_obj){
+		
+		if(unemp_obj.FIPStxt == county_obj.id){
+		important_Data.push({id:county_obj.id, name: county_obj.name, household_Income: unemp_obj['Median_Household_Income_2016'] })
+		}	
+
+	
+})
+})
+console.log(important_Data)
 });
 
 
