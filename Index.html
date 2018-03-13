@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Homework 3 ECP94 </title>
+	<script src="https://d3js.org/d3.v4.min.js"></script>
+	<script src="https://d3js.org/topojson.v2.min.js"></script>
+
+	
+</head>
+<body>
+	<style>
+
+.states :hover {
+  fill: blue;
+}
+.counties :hover{
+	fill: red;
+}
+.county-borders{
+	fill: none;
+  stroke: blue;
+  stroke-width: 0.5px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+.state-borders {
+  fill: none;
+  stroke: magenta;
+  stroke-width: 0.5px;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+</style>
+
+<svg width="960" height="600"></svg>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/topojson.v2.min.js"></script>
+
+<script>
+ALLTHEINFO = [];
+
+d3.csv('HIV_Cases_CDC.csv', function(d) {
+	HIVdata = d;  
+  
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  var svg = d3.select("svg");
+
+  var path = d3.geoPath();
+
+  d3.json("us.json",function(error, us){
+    if(error) throw error;
+states = topojson.feature(us, us.objects.states).features
+counties = topojson.feature(us, us.objects.counties).features
+
+states_names= {
+'01':"Alabama", 
+'02':"Alaska",
+'04':"Arizona",
+'05':"Arkansas",
+'06':"California",
+'08':"Colorado",
+'09':"Connecticut",
+'10':"Delaware",
+'12':"Florida",
+'13':"Georgia",
+'15':"Hawaii",
+'16':"Idaho",
+'17':"Illinois",
+'18':"Indiana",
+'19':"Iowa",
+'20':"Kansas",
+'21':"Kentucky",
+'22':"Louisiana",
+'23':"Maine",
+'24':"Maryland",
+'25':"Massachusetts",
+'26':"Michigan",
+'27':"Minnesota",
+'28':"Mississippi",
+'29':"Missouri",
+'30':"Montana",
+'31':"Nebraska",
+'32':"Nevada",
+'33':"New_Hampshire",
+'34':"New_Jersey",
+'35':"New_Mexico",
+'36':"New_York",
+'37':"North_Carolina",
+'38':"North_Dakota",
+'39':"Ohio",
+'40':"Oklahoma",
+'41':"Oregon",
+'42':"Pennsylvania",
+'44':"Rhode_Island",
+'45':"South_Carolina",
+'46':"South_Dakota",
+'47':"Tennessee",
+'48':"Texas",
+'49':"Utah",
+'50':"Vermont",
+'51':"Virginia",
+'53':"Washington",
+'54':"West_Virginia",
+'55':"Wisconsin",
+'56':"Wyoming"
+}
+counties = [];
+counties_data = topojson.feature(us, us.objects.counties).features;
+state_nums = Object.keys(states_names);
+state_nums.map(x => parseInt(x));
+
+
+for(var i=0;i< state_nums.length;i++){
+counties[states_names[state_nums[i]]] = counties_data.filter(county => parseInt(county.id/1000) == state_nums[i]
+)};
+
+
+
+	function addCounty(state){
+
+	   svg.append("g")
+      .attr("class", "counties")
+      .selectAll("path")
+      .data(counties[state])
+      .enter().append("path")
+      .attr("d", path)
+      .on("click", function(d){
+      	console.log(d.id);
+      });
+      svg.append("path")
+       .attr("class", "county-borders")
+       .attr("d", path(topojson.mesh(us, us.objects.counties, function(a, b) {
+        return a !== b; })));
+}
+  
+
+
+
+	  svg.append("g")
+      .attr("class", "states")
+      .selectAll("path")
+      .data(topojson.feature(us, us.objects.states).features)
+      .enter().append("path")
+      .attr("d", path)
+      .on("click", function(d){
+		addCounty(states_names[d.id]);
+      });
+       
+        svg.append("path")
+       .attr("class", "state-borders")
+       .attr("d", path(topojson.mesh(us, us.objects.states, function(a, b) {
+        return a !== b; })));
+
+
+  });
+
+
+</script>
+</body>
+</html>
