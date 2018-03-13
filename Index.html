@@ -147,13 +147,22 @@ d3.csv('HIV_Cases_CDC.csv', function(d) {
 				.attr("d", path)
 				.on("click", function(d){
 					console.log(d.id);
+				})
+				.on("mouseover",function(d){
+					hoveredCounty(d);
 				});
 			allg.append("path")
 				.attr("class", "county-borders")
 				.attr("d", path(topojson.mesh(us, us.objects.counties, function(a, b) {
 				return a !== b && CountyInState(state,a.id) && CountyInState(state,b.id); })));
 		}
-  
+		
+		function hoveredCounty(county){
+			var centroid = path.centroid(county);
+			var x = centroid[0];
+			var y = centroid[1];
+			console.log(x,y);
+		}
 
 		id_thingy=0;
 		centered = null;
@@ -165,7 +174,8 @@ d3.csv('HIV_Cases_CDC.csv', function(d) {
 			.attr("d", path)
 			.on("click", function(d){
 				id_thingy = d.id;
-				addCounties(states_names[id_thingy]);
+				var state = states_names[id_thingy];
+				addCounties(state);
 				//Done with the help of https://bl.ocks.org/mbostock/2206590
 				var x, y, k;
 	
@@ -173,7 +183,7 @@ d3.csv('HIV_Cases_CDC.csv', function(d) {
 				  var centroid = path.centroid(d);
 				  x = centroid[0];
 				  y = centroid[1];
-				  k = 4;
+				  k = (state=="California"||state=="Texas")?2:4;
 				  centered = d;
 				} else {
 				  x = 960 / 2;
