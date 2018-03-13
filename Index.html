@@ -137,24 +137,38 @@ d3.csv('HIV_Cases_CDC.csv', function(d) {
 			}
 			return false;
 		}
-
+		
+		selectedCounty = false;
 		function addCounties(state){
-			allg.append("g")
+			if (selectedCounty){
+				selectedCounty.remove();
+				selectedCountyBorders.remove();
+				//svg.select(".selectedCounties").exit().remove();
+			}
+			selectedCounty = allg.append("g")
 				.attr("class", "counties")
 				.selectAll("path")
 				.data(counties[state])
 				.enter().append("path")
 				.attr("d", path)
+				.attr("class","selectedCounties")
 				.on("click", function(d){
 					console.log(d.id);
 				})
 				.on("mouseover",function(d){
 					hoveredCounty(d);
 				});
-			allg.append("path")
+			/*selectedCountyBorders = allg.append("path")
 				.attr("class", "county-borders")
 				.attr("d", path(topojson.mesh(us, us.objects.counties, function(a, b) {
-				return a !== b && CountyInState(state,a.id) && CountyInState(state,b.id); })));
+				return a !== b && CountyInState(state,a.id) && CountyInState(state,b.id); })));*/
+			
+			selectedCountyBorders = allg.append("g")
+				.selectAll("path")
+				.data(counties[state])
+				.enter().append("path")
+				.attr("class", "county-borders")
+				.attr("d", path);
 		}
 		
 		function hoveredCounty(county){
