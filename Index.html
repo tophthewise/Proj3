@@ -119,18 +119,28 @@ states_names= {
 '56':"Wyoming"
 }
 counties = [];
+Us = us;
 counties_data = topojson.feature(us, us.objects.counties).features;
 state_nums = Object.keys(states_names);
 state_nums.map(x => parseInt(x));
+ blah = topojson.mesh(us, us.objects.counties, function(a, b) {
+        return a !== b; })
 
 
 for(var i=0;i< state_nums.length;i++){
 counties[states_names[state_nums[i]]] = counties_data.filter(county => parseInt(county.id/1000) == state_nums[i]
 )};
 
+	function CountyInState(state,id){
+		for (var i=0,len=counties[state].length; i<len; i++){
+			if (counties[state][i].id == id){
+				return true;
+			}
+		}
+		return false;
+	}
 
-
-	function addCounty(state){
+	function addCounties(state){
 
 	   svg.append("g")
       .attr("class", "counties")
@@ -144,11 +154,11 @@ counties[states_names[state_nums[i]]] = counties_data.filter(county => parseInt(
       svg.append("path")
        .attr("class", "county-borders")
        .attr("d", path(topojson.mesh(us, us.objects.counties, function(a, b) {
-        return a !== b; })));
+        return a !== b && CountyInState(state,a.id) && CountyInState(state,b.id); })));
 }
   
 
-
+		id_thingy=0;
 
 	  svg.append("g")
       .attr("class", "states")
@@ -157,9 +167,12 @@ counties[states_names[state_nums[i]]] = counties_data.filter(county => parseInt(
       .enter().append("path")
       .attr("d", path)
       .on("click", function(d){
-		addCounty(states_names[d.id]);
+		id_thingy = d.id;
+		  addCounties(states_names[id_thingy]);
       });
-       
+
+     
+
         svg.append("path")
        .attr("class", "state-borders")
        .attr("d", path(topojson.mesh(us, us.objects.states, function(a, b) {
