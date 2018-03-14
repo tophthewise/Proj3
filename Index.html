@@ -281,7 +281,7 @@ d3.queue()
 	// console.log(unemploymentData);
 	// console.log(countyNames);
 important_Data=[];
-
+console.log(hivData);
 countyNames.forEach(function(county_obj){
 
 obj = {};
@@ -296,26 +296,25 @@ county_id = county_obj.id;
 				 name: county_obj.name, 
 				 household_Income: unemp_obj['Median_Household_Income_2016']};
 			}	
-	})
+	});
 	
-	
-
 	electiondata.forEach(function(election_obj){
 	
 		if(county_id == election_obj.combined_fips){
 			obj.total_votes = parseFloat((election_obj.total_votes).replace(/,/, ''));
 		}
 		
-	})
+	});
+
 	hivData.forEach(function(hiv_obj){
 	
 		if(county_id == hiv_obj.FIPS){
-			obj.population = parseFloat((hiv_obj.Population).replace(/,/, ''));
+			obj.population = parseFloat((hiv_obj.Population).replace(/,/g, ''));
 			obj.vote_percentage = obj.total_votes/obj.population
 			obj.num_of_cases = hiv_obj.Cases;
-	}
+		}
 		
-	})
+	});
 
 
 	important_Data.push(obj);
