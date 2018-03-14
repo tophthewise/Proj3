@@ -47,6 +47,10 @@
   pointer-events: none;
 }
 
+.graph_container{
+	pointer-events:none;
+}
+
 .returntext:hover{
 	cursor:pointer;
 }
@@ -65,6 +69,11 @@
 	var svg = d3.select("svg");
 	svg.style("width",width).style("height",height);
 	var allg = svg.append("g");
+	var mapsg = allg.append("g");
+	var graphsg = svg.append("g");
+	var globalgraphs = graphsg.append("g");
+	var localgraphs = allg.append("g");
+	var drawnLocalGraphs = [];
 	var path = d3.geoPath();
 
 	d3.json("us.json",function(error, us){
@@ -204,16 +213,22 @@
 				selectedCountyBorders.remove();
 				//svg.select(".selectedCounties").exit().remove();
 			}
-			selectedCounty = allg.append("g")
+			selectedCounty = mapsg.append("g")
 				.attr("class", "counties")
 				.selectAll("path")
 				.data(counties[state])
 				.enter().append("path")
 				.attr("d", path)
 				.attr("class","selectedCounties")
-				.classed("selected",function(d){return selectedCounties.indexOf(d.id)>=0;})
+				.classed("selected",function(d){
+					if (selectedCounties.indexOf(d.id)>=0){
+						drawLocalGraph(d);
+						return true;
+					}
+					return false;
+				})
 				.on("click", function(d){
-					toggleCountySelected(d.id);
+					toggleCountySelected(d);
 					d3.select(this).classed("selected",(selectedCounties.indexOf(d.id)>=0));
 				})
 				.on("mouseover",function(d){
@@ -224,7 +239,7 @@
 				.attr("d", path(topojson.mesh(us, us.objects.counties, function(a, b) {
 				return a !== b && CountyInState(state,a.id) && CountyInState(state,b.id); })));*/
 			
-			selectedCountyBorders = allg.append("g")
+			selectedCountyBorders = mapsg.append("g")
 				.selectAll("path")
 				.data(counties[state])
 				.enter().append("path")
@@ -248,25 +263,50 @@
 		}
 		
 		function toggleCountySelected(county){
-			if (selectedCounties.indexOf(county) >= 0){
-				selectedCounties.splice(selectedCounties.indexOf(county),1);
+			if (selectedCounties.indexOf(county.id) >= 0){
+				selectedCounties.splice(selectedCounties.indexOf(county.id),1);
 				return;
 			}
-			selectedCounties.push(county);
+			drawLocalGraph(county);
+			selectedCounties.push(county.id);
 		}
 		
-		function hoveredCounty(county){
+		function drawLocalGraph(county,fromhover=false){
+			for (var i=drawnLocalGraphs.length-1; i>=0; i--){
+				var drawnlocal = drawnLocalGraphs[i];
+				if (drawnlocal.fromhover){
+					drawnlocal.graph.remove();
+					drawnLocalGraphs.splice(i,1);
+					break;
+				}
+				if (drawnLocalGraphs[i].id == county.id) {
+					return;
+				}
+			}
+			var newGraph = {id:county.id,fromhover:fromhover};
 			var countydata = findCountyDataWithId(county.id);
-			console.log(countydata);
 			var centroid = path.centroid(county);
 			var x = centroid[0];
 			var y = centroid[1];
-			console.log(x,y);
+			var widthOfG = 100 / lastScaledK;
+			var heightOfG = 100 / lastScaledK;
+			newGraph.graph =localgraphs.append("rect").attr("class","graph_container").attr("width",widthOfG).attr("height",heightOfG).attr("x",x).attr("y",y).style("fill","red");
+			//localgraphs.append("g").attr("class","graph_container").attr("x",x).attr("y",y);
+				/*.data(countydata)
+					.enter().append("div")
+					.style("width", function(d) { return d * 10 + "px"; })
+					.text(function(d) { return d; });*/
+			drawnLocalGraphs.push(newGraph);
+		}
+		
+		function hoveredCounty(county){
+			drawLocalGraph(county,true);
 		}
 
 		id_thingy=0;
 		centered = null;
-		allg.append("g")
+		lastScaledK=1;
+		mapsg.append("g")
 			.attr("class", "states")
 			.selectAll("path")
 			.data(topojson.feature(us, us.objects.states).features)
@@ -287,10 +327,10 @@
 				  centered = d;
 				  returnText.style("display","block");
 				} else {
-				  
+					return;
 				}
-			  
-				allg.selectAll("path")
+				lastScaledK = k;
+				mapsg.selectAll("path")
 					.classed("active", centered && function(d) { return d === centered; });
 			  
 				allg.transition()
@@ -305,7 +345,7 @@
 
      
 
-        allg.append("path")
+        mapsg.append("path")
 			.attr("class", "state-borders")
 			.attr("d", path(topojson.mesh(us, us.objects.states, function(a, b) {
 				return a !== b; })));
@@ -322,7 +362,7 @@
 			selectedCounty.remove();
 			selectedCountyBorders.remove();
 			
-			allg.selectAll("path")
+			mapsg.selectAll("path")
 				.classed("active", centered && function(d) { return d === centered; });
 		  
 			allg.transition()
