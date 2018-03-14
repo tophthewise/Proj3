@@ -26,6 +26,9 @@
 .counties :hover{
 	fill: #bcbcbc;
 }
+.counties.selected{
+	fill: #ff3333;
+}
 .county-borders{
 	fill: none;
   stroke: #bcbcbc;
@@ -193,6 +196,7 @@
 		}
 		
 		selectedCounty = false;
+		selectedCounties = [];
 		function addCounties(state){
 			if (selectedCounty){
 				selectedCounty.remove();
@@ -207,7 +211,8 @@
 				.attr("d", path)
 				.attr("class","selectedCounties")
 				.on("click", function(d){
-					console.log(d.id);
+					toggleCountySelected(d.id);
+					d3.select(this).classed("selected",!d3.select(this).hasClass("selected"));
 				})
 				.on("mouseover",function(d){
 					hoveredCounty(d);
@@ -238,6 +243,13 @@
 					return state_stats[states_names[i]];
 				}
 			}
+		}
+		
+		function toggleCountySelected(county){
+			if (selectedCounties.indexOf(county) >= 0){
+				selectedCounties.splice(selectedCounties.indexOf(county),1);
+			}
+			selectedCounties.push(county);
 		}
 		
 		function hoveredCounty(county){
