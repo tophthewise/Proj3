@@ -210,7 +210,17 @@
 				.attr("d", path);
 		}
 		
+		function findCountyDataWithId(id){
+			for (var i=0,len=important_Data.length; i<len; i++){
+				if (important_Data[i].id == id){
+					return important_Data[i];
+				}
+			}
+		}
+		
 		function hoveredCounty(county){
+			var countydata = findCountyDataWithId(county.id);
+			console.log(countydata);
 			var centroid = path.centroid(county);
 			var x = centroid[0];
 			var y = centroid[1];
