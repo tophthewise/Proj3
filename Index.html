@@ -42,37 +42,6 @@
 
 <script>
 
-d3.queue()
-.defer(d3.csv,'HIV_Cases_CDC.csv')
-.defer(d3.csv,'Unemployment.csv')
-.defer(d3.tsv, 'us-county-names.tsv')
-.await(function(error,hivData,unemploymentData,countyNames){
-	// console.log(hivData);
-	// console.log(unemploymentData);
-	// console.log(countyNames);
-important_Data=[];
-
-countyNames.forEach(function(county_obj){
-county_id = county_obj.id;
-	unemploymentData.forEach(function(unemp_obj){
-		
-		if(unemp_obj.FIPStxt == county_obj.id){
-		important_Data.push({id:county_obj.id, name: county_obj.name, household_Income: unemp_obj['Median_Household_Income_2016'] })
-		}	
-
-	
-})
-})
-console.log(important_Data)
-});
-
-
-
-
-
-
-
-
 
 
 	var svg = d3.select("svg");
@@ -84,7 +53,7 @@ console.log(important_Data)
 		states = topojson.feature(us, us.objects.states).features
 		counties = topojson.feature(us, us.objects.counties).features
 
-		states_names= {
+		states_names1= {
 			'01':"Alabama", 
 			'02':"Alaska",
 			'04':"Arizona",
@@ -136,15 +105,67 @@ console.log(important_Data)
 			'55':"Wisconsin",
 			'56':"Wyoming"
 		};
+		states_names2= {
+			'1':"Alabama", 
+			'2':"Alaska",
+			'4':"Arizona",
+			'5':"Arkansas",
+			'6':"California",
+			'8':"Colorado",
+			'9':"Connecticut",
+			'10':"Delaware",
+			'12':"Florida",
+			'13':"Georgia",
+			'15':"Hawaii",
+			'16':"Idaho",
+			'17':"Illinois",
+			'18':"Indiana",
+			'19':"Iowa",
+			'20':"Kansas",
+			'21':"Kentucky",
+			'22':"Louisiana",
+			'23':"Maine",
+			'24':"Maryland",
+			'25':"Massachusetts",
+			'26':"Michigan",
+			'27':"Minnesota",
+			'28':"Mississippi",
+			'29':"Missouri",
+			'30':"Montana",
+			'31':"Nebraska",
+			'32':"Nevada",
+			'33':"New_Hampshire",
+			'34':"New_Jersey",
+			'35':"New_Mexico",
+			'36':"New_York",
+			'37':"North_Carolina",
+			'38':"North_Dakota",
+			'39':"Ohio",
+			'40':"Oklahoma",
+			'41':"Oregon",
+			'42':"Pennsylvania",
+			'44':"Rhode_Island",
+			'45':"South_Carolina",
+			'46':"South_Dakota",
+			'47':"Tennessee",
+			'48':"Texas",
+			'49':"Utah",
+			'50':"Vermont",
+			'51':"Virginia",
+			'53':"Washington",
+			'54':"West_Virginia",
+			'55':"Wisconsin",
+			'56':"Wyoming"
+		};
 		counties = [];
 		Us = us;
 		counties_data = topojson.feature(us, us.objects.counties).features;
-		state_nums = Object.keys(states_names);
+		state_nums = Object.keys(states_names1);
 		state_nums.map(x => parseInt(x));
 
 
 		for(var i=0;i< state_nums.length;i++){
-			counties[states_names[state_nums[i]]] = counties_data.filter(county => parseInt(county.id/1000) == state_nums[i]
+			counties[states_names1[state_nums[i]]] = counties_data.filter(county => parseInt(county.id/1000) == state_nums[i]
 		)};
 
 		function CountyInState(state,id){
@@ -206,7 +227,7 @@ console.log(important_Data)
 			.attr("d", path)
 			.on("click", function(d){
 				id_thingy = d.id;
-				var state = states_names[id_thingy];
+				var state = states_names1[id_thingy];
 				addCounties(state);
 				//Done with the help of https://bl.ocks.org/mbostock/2206590
 				var x, y, k;
@@ -240,6 +261,99 @@ console.log(important_Data)
 			.attr("d", path(topojson.mesh(us, us.objects.states, function(a, b) {
 				return a !== b; })));
   });
+d3.queue()
+.defer(d3.csv,'HIV_Cases_CDC.csv')
+.defer(d3.csv,'Unemployment.csv')
+.defer(d3.tsv, 'us-county-names.tsv')
+.defer(d3.csv, 'electiondata.csv')
+.await(function(error,hivData,unemploymentData,countyNames,electiondata){
+	// console.log(hivData);
+	// console.log(unemploymentData);
+	// console.log(countyNames);
+important_Data=[];
+
+countyNames.forEach(function(county_obj){
+
+obj = {};
+county_id = county_obj.id;
+	
+
+	unemploymentData.forEach(function(unemp_obj){
+
+			if(unemp_obj.FIPStxt == county_id){
+				obj = {id:county_obj.id,
+					state: states_names2[parseInt(county_obj.id/1000)],
+				 name: county_obj.name, 
+				 household_Income: unemp_obj['Median_Household_Income_2016']};
+			}	
+	})
+	
+	
+
+	electiondata.forEach(function(election_obj){
+	
+		if(county_id == election_obj.combined_fips){
+			obj.total_votes = parseFloat((election_obj.total_votes).replace(/,/, ''));
+		}
+		
+	})
+	hivData.forEach(function(hiv_obj){
+	
+		if(county_id == hiv_obj.FIPS){
+			obj.population = parseFloat((hiv_obj.Population).replace(/,/, ''));
+			obj.vote_percentage = obj.total_votes/obj.population
+			obj.num_of_cases = hiv_obj.Cases;
+	}
+		
+	})
+
+
+	important_Data.push(obj);
+
+
+});
+ID2 =[];
+
+names = Object.values(states_names1);
+names.forEach(function(name){
+	ID2[name]=[];
+	important_Data.forEach(function(county){
+		if(county.state != county.name && county.state == name ){
+			ID2[name].push(county);
+		}
+	})
+})
+state_stats=[];
+names.forEach(function(name){
+	counter=0;
+	ID2[name].forEach(function(d){
+		if(d.num_of_cases == "Data suppressed"){
+			counter++;
+		}
+	})
+
+	state_stats[name]= {
+			data_surpressed: counter,
+			Num_of_counties: ID2[name].length,
+			Surpressd_data_percentage: counter/ID2[name].length
+
+
+		}
+});
+
+
+
+
+});
+
+
+
+
+
+
+
+
+
 
 
 </script>
