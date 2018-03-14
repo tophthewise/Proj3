@@ -5,21 +5,31 @@
 	<title>Homework 3 ECP94 </title>
 	<script src="https://d3js.org/d3.v4.min.js"></script>
 	<script src="https://d3js.org/topojson.v2.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js" type="text/javascript"></script>
+
 
 	
 </head>
 <body>
 	<style>
-
+	body{
+		background-color: #222222
+	}
+.title{
+	margin:0 auto;
+	text-align: center;
+	color:#fd2c2c;
+	/*this color should be what we use as a scale*/
+}
 .states :hover {
-  fill: blue;
+  fill: #fd2c2c;
 }
 .counties :hover{
-	fill: red;
+	fill: #bcbcbc;
 }
 .county-borders{
 	fill: none;
-  stroke: blue;
+  stroke: #bcbcbc;
   stroke-width: 0.5px;
   stroke-linejoin: round;
   stroke-linecap: round;
@@ -27,7 +37,7 @@
 }
 .state-borders {
   fill: none;
-  stroke: magenta;
+  stroke: #7a7a7a;
   stroke-width: 0.5px;
   stroke-linejoin: round;
   stroke-linecap: round;
@@ -35,7 +45,7 @@
 }
 
 </style>
-
+<h3 class="title"> HIV Statistics in US by County</h3>
 <svg width="960" height="600"></svg>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/topojson.v2.min.js"></script>
@@ -217,6 +227,13 @@
 				}
 			}
 		}
+		function findStateDataWithId(id){
+			for (var i=0,len=state_stats.length; i<len; i++){
+				if (state_stats[states_names[i]].id == id) {
+					return state_stats[states_names[i]];
+				}
+			}
+		}
 		
 		function hoveredCounty(county){
 			var countydata = findCountyDataWithId(county.id);
@@ -262,6 +279,10 @@
 					.duration(750)
 					.attr("transform", "translate(" + 960 / 2 + "," + 600 / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
 					.style("stroke-width", 1.5 / k + "px");
+			})
+			.style('fill', function(d){
+				//stateData = findStateDataWithId(d.id);
+				//console.log(stateData);
 			});
 
      
@@ -344,7 +365,8 @@ names.forEach(function(name){
 	state_stats[name]= {
 			data_surpressed: counter,
 			Num_of_counties: ID2[name].length,
-			Surpressd_data_percentage: counter/ID2[name].length
+			Surpressd_data_percentage: counter/ID2[name].length,
+			id: _.invert(states_names1)[name]
 
 
 		}
