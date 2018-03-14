@@ -271,6 +271,13 @@
 			selectedCounties.push(county.id);
 		}
 		
+		function clearLocalGraphs(){
+			for (var i=drawnLocalGraphs.length-1; i>=0; i--){
+				drawnLocalGraphs[i].graph.remove();
+				drawnLocalGraphs.splice(i,1);
+			}
+		}
+		
 		function drawLocalGraph(county,fromhover=false){
 			for (var i=drawnLocalGraphs.length-1; i>=0; i--){
 				var drawnlocal = drawnLocalGraphs[i];
@@ -314,6 +321,7 @@
 			.attr("d", path)
 			.on("click", function(d){
 				id_thingy = d.id;
+				clearLocalGraphs();
 				var state = states_names1[id_thingy];
 				addCounties(state);
 				//Done with the help of https://bl.ocks.org/mbostock/2206590
@@ -369,6 +377,8 @@
 				.duration(750)
 				.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
 				.style("stroke-width", 1.5 / k + "px");
+				
+			clearLocalGraphs();
 		}
 		
 		var returnText = svg.append('text')
