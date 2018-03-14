@@ -382,7 +382,8 @@ county_id = county_obj.id;
 		if(county_id == hiv_obj.FIPS){
 			obj.population = parseFloat((hiv_obj.Population).replace(/,/g, ''));
 			obj.vote_percentage = obj.total_votes/obj.population;
-			obj.num_of_cases = hiv_obj.Cases;
+			obj.num_of_cases = parseFloat((hiv_obj.Cases).replace(/,/g, ''));
+			obj.cases_per_hundredthousand = (obj.num_of_cases / obj.population) * (100000);
 		}
 		
 	});
