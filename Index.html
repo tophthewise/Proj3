@@ -347,6 +347,9 @@
 					.style("stroke-width", 1.5 / k + "px");
 			})
 			.style('fill', function(d){
+
+				//console.log(d);
+				//console.log(important_Data)
 				//stateData = findStateDataWithId(d.id);
 				//console.log(stateData);
 			});
@@ -408,7 +411,6 @@ countyNames.forEach(function(county_obj){
 obj = {};
 county_id = county_obj.id;
 	
-
 	unemploymentData.forEach(function(unemp_obj){
 
 			if(unemp_obj.FIPStxt == county_id){
@@ -432,7 +434,18 @@ county_id = county_obj.id;
 		if(county_id == hiv_obj.FIPS){
 			obj.population = parseFloat((hiv_obj.Population).replace(/,/g, ''));
 			obj.vote_percentage = obj.total_votes/obj.population;
-			obj.num_of_cases = parseFloat((hiv_obj.Cases).replace(/,/g, ''));
+			if (hiv_obj.Indicator == "HIV diagnoses"){
+				obj.num_of_diagnoses_cases = (hiv_obj.Cases=="Data suppressed")?false:parseFloat((hiv_obj.Cases).replace(/,/g, ''));
+				if (typeof obj.num_of_prevalence_cases !== "undefined"){
+					return false;
+				}
+			}
+			if (hiv_obj.Indicator == "HIV prevalence"){
+				obj.num_of_prevalence_cases = (hiv_obj.Cases=="Data suppressed")?false:parseFloat((hiv_obj.Cases).replace(/,/g, ''));
+				if (typeof obj.num_of_diagnoses_cases !== "undefined"){
+					return false;
+				}
+			}
 			obj.cases_per_hundredthousand = (obj.num_of_cases / obj.population) * (100000);
 		}
 		
@@ -440,10 +453,7 @@ county_id = county_obj.id;
 
 
 	important_Data.push(obj);
-
-
-});
-ID2 =[];
+		ID2 =[];
 
 names = Object.values(states_names1);
 names.forEach(function(name){
@@ -458,7 +468,7 @@ state_stats=[];
 names.forEach(function(name){
 	counter=0;
 	ID2[name].forEach(function(d){
-		if(d.num_of_cases == "Data suppressed"){
+		if(!d.num_of_diagnoses_cases && !d.num_of_prevalence_cases){
 			counter++;
 		}
 	});
@@ -471,6 +481,9 @@ names.forEach(function(name){
 	};
 });
 
+
+
+});
 
 
 
