@@ -32,7 +32,7 @@
 }
 .county-borders{
 	fill: none;
-  stroke: #bcbcbc;
+  stroke: #a3a3a3;
   stroke-width: 0.5px;
   stroke-linejoin: round;
   stroke-linecap: round;
@@ -237,12 +237,23 @@
 					d3.select(this).classed("selected",(selectedCounties.indexOf(d.id)>=0));
 				})
 				.on("mouseover",function(d){
+					console.log(d);
 					hoveredCounty(d);
+				})
+				.style('fill', function(d){
+					var county = findCountyDataWithId(d.id);
+					if(county.num_of_diagnoses_cases == false && county.num_of_prevalence_cases ==false){
+						return '#bcbcbc';
+					}
+					else{
+						return '#fd2c2c';
+
+					}
 				});
-			/*selectedCountyBorders = allg.append("path")
-				.attr("class", "county-borders")
-				.attr("d", path(topojson.mesh(us, us.objects.counties, function(a, b) {
-				return a !== b && CountyInState(state,a.id) && CountyInState(state,b.id); })));*/
+			// selectedCountyBorders = allg.append("path")
+			// 	.attr("class", "county-borders")
+			// 	.attr("d", path(topojson.mesh(us, us.objects.counties, function(a, b) {
+			// 	return a !== b && CountyInState(state,a.id) && CountyInState(state,b.id); })));
 			
 			selectedCountyBorders = mapsg.append("g")
 				.selectAll("path")
@@ -348,6 +359,9 @@
 			.data(topojson.feature(us, us.objects.states).features)
 			.enter().append("path")
 			.attr("d", path)
+			.attr('id',function(d){
+				return d.id
+			} )
 			.on("click", function(d){
 				id_thingy = d.id;
 				clearLocalGraphs();
@@ -376,11 +390,6 @@
 					.style("stroke-width", 1.5 / k + "px");
 			})
 			.style('fill', function(d){
-
-				//console.log(d);
-				//console.log(important_Data)
-				//stateData = findStateDataWithId(d.id);
-				//console.log(stateData);
 			});
 
      
@@ -516,10 +525,20 @@ names.forEach(function(name){
 
 });
 
+d3.select(".states").selectAll('path').data(states).style('fill', 
+	function(d){
+	if(state_stats[states_names1[d.id]]!==undefined){
+		ratio = state_stats[states_names1[d.id]].Surpressd_data_percentage;
+	
 
+	return d3.hsl(0, 1-ratio, .58);
+	
+	}
+	
+}
+ );
 
 });
-
 
 
 
