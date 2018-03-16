@@ -307,31 +307,36 @@
 			newGraph.graph.append("rect")
 				.attr("width",230)
 				.attr("height",200);
-			newGraph.graph.append("text")
-				.style("font-size","16px")
-				.attr("x",8)
-				.attr("y",24)
-				.text((countydata.name + ", " + countydata.state.replace("_"," ")));
-				
-			var orderOfData = [
-				{key:"population",title:"Population: "},
-				{key:"vote_parsed",title:"Percentage Voted: "},
-				{key:"diagnoses_per_hundredthousand",title:"Diagnoses per 100,000: "},
-				{key:"prevalence_per_hundredthousand",title:"Prevalence per 100,000: "}
-			];
-			
-			var lasty = 24;
-			
-			for (var i=0,len=orderOfData.length; i<len; i++){
-				if (!countydata[orderOfData[i].key]){continue;}
-				lasty = lasty + 24;
+			if (typeof countydata === "undefined"){
 				newGraph.graph.append("text")
 				.style("font-size","16px")
 				.attr("x",8)
 				.attr("y",lasty)
 				.text(orderOfData[i].title + countydata[orderOfData[i].key]);
+					.style("font-size","16px")
+					.attr("x",8)
+					.attr("y",24)
+					.text((countydata.name + ", " + countydata.state.replace("_"," ")));
+					
+				var orderOfData = [
+					{key:"population",title:"Population: "},
+					{key:"vote_parsed",title:"Percentage Voted: "},
+					{key:"diagnoses_per_hundredthousand",title:"Diagnoses per 100,000: "},
+					{key:"prevalence_per_hundredthousand",title:"Prevalence per 100,000: "}
+				];
+				
+				var lasty = 24;
+				
+				for (var i=0,len=orderOfData.length; i<len; i++){
+					if (!countydata[orderOfData[i].key]){continue;}
+					lasty = lasty + 24;
+					newGraph.graph.append("text")
+					.style("font-size","16px")
+					.attr("x",8)
+					.attr("y",lasty)
+					.text(orderOfData[i].title + countydata[orderOfData[i].key]);
+				}
 			}
-			
 			drawnLocalGraphs.push(newGraph);
 		}
 		
@@ -461,9 +466,11 @@ county_id = county_obj.id;
 	hivData.forEach(function(hiv_obj){
 	
 		if(county_id == hiv_obj.FIPS){
-			obj.population = parseFloat((hiv_obj.Population).replace(/,/g, ''));
-			obj.vote_percentage = obj.total_votes/obj.population;
-			obj.vote_parsed = (obj.vote_percentage * 100).toFixed(2);
+			if (obj.population !== null){
+				obj.population = parseFloat((hiv_obj.Population).replace(/,/g, ''));
+				obj.vote_percentage = obj.total_votes/obj.population;
+				obj.vote_parsed = (obj.vote_percentage * 100).toFixed(2);
+			}
 			if (hiv_obj.Indicator == "HIV diagnoses"){
 				obj.num_of_diagnoses_cases = (hiv_obj.Cases=="Data suppressed")?false:parseFloat((hiv_obj.Cases).replace(/,/g, ''));
 				obj.diagnoses_per_hundredthousand = (hiv_obj.Cases=="Data suppressed")?false:((obj.num_of_diagnoses_cases / obj.population) * (100000)).toFixed(2);
