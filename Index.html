@@ -221,8 +221,12 @@
 			var max = 0;
 			for (var i=0,len=ID2[state].length; i<len; i++){
 				var county = ID2[state][i];
-				if (county[val] && county[val] > max){
-					max = county[val];
+				var countyval = county[val];
+				if (val == "household_Income"){
+					countyval = parseFloat(county[val].replace(/,/, ''));
+				}
+				if (county[val] && countyval > max){
+					max = countyval;
 				}
 			}
 			return max;
@@ -232,8 +236,12 @@
 			var min = 10000000;
 			for (var i=0,len=ID2[state].length; i<len; i++){
 				var county = ID2[state][i];
-				if (county[val] && county[val] < min){
-					min = county[val];
+				var countyval = county[val];
+				if (val == "household_Income"){
+					countyval = parseFloat(county[val].replace(/,/, ''));
+				}
+				if (county[val] && countyval < min){
+					min = countyval;
 				}
 			}
 			return min;
@@ -288,8 +296,7 @@
 						var minval = findMinInState(county.state,"household_Income");
 						//var color = d3.scaleLinear().domain([minval,maxval]).range(["#fdf2f4","#ae5965"]);
 						var color = d3.scaleQuantize().domain([0,1]).range(["#fdf2f4","#f9ced4","#F39da9","#ef798a","#ae5965"]);
-						
-						ratio = county.household_Income/maxval;
+						ratio = parseFloat(county.household_Income.replace(/,/, ''))/maxval;
 					
 						return color(ratio);
 					});
