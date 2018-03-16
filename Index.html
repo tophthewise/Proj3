@@ -297,6 +297,7 @@
 			}
 			var newGraph = {id:county.id,fromhover:fromhover};
 			var countydata = findCountyDataWithId(county.id);
+
 			var centroid = path.centroid(county);
 			var x = centroid[0];
 			var y = centroid[1];
@@ -309,10 +310,12 @@
 				.attr("height",200);
 			if (typeof countydata === "undefined"){
 				newGraph.graph.append("text")
-				.style("font-size","16px")
-				.attr("x",8)
-				.attr("y",lasty)
-				.text(orderOfData[i].title + countydata[orderOfData[i].key]);
+					.style("font-size","16px")
+					.attr("x",8)
+					.attr("y",24)
+					.text("No data");
+			}else{
+				newGraph.graph.append("text")
 					.style("font-size","16px")
 					.attr("x",8)
 					.attr("y",24)
