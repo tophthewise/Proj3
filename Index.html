@@ -22,13 +22,13 @@
 	/*this color should be what we use as a scale*/
 }
 .states :hover {
-  fill: #fd2c2c;
+  fill: #ffa741 !important;
 }
 .counties :hover{
-	fill: #bcbcbc;
+	fill: #ffa741 !important;
 }
 .counties > path.selected{
-	fill: #ff3333;
+	fill: #ffa741 !important;
 }
 .county-borders{
 	fill: none;
@@ -61,7 +61,7 @@
 }
 
 </style>
-<h3 class="title"> HIV Statistics in US by County</h3>
+<h3 class="title"> HIV Statistics in the US by County</h3>
 <svg></svg>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <script src="https://d3js.org/topojson.v2.min.js"></script>
@@ -80,6 +80,13 @@
 	var localgraphs = allg.append("g");
 	var drawnLocalGraphs = [];
 	var path = d3.geoPath();
+	
+	var loadingtext = allg.append("text")
+		.style("font-size","16px")
+		.attr("x",width/2)
+		.attr("y",height/2)
+		.style("fill","white")
+		.text("Loading..");
 
 	d3.json("us.json",function(error, us){
 		if(error) throw error;
@@ -210,6 +217,134 @@
 			return false;
 		}
 		
+		function findMaxInState(state,val){
+			var max = 0;
+			for (var i=0,len=ID2[state].length; i<len; i++){
+				var county = ID2[state][i];
+				if (county[val] && county[val] > max){
+					max = county[val];
+				}
+			}
+			return max;
+		}
+		
+		function findMinInState(state,val){
+			var min = 10000000;
+			for (var i=0,len=ID2[state].length; i<len; i++){
+				var county = ID2[state][i];
+				if (county[val] && county[val] < min){
+					min = county[val];
+				}
+			}
+			return min;
+		}
+		
+		var lastColoredBy = "data_suppressed";
+		function colorCountiesBy(by="data_suppressed"){
+			lastColoredBy = by;
+			switch(by){
+				case "hiv_diagnoses":
+					selectedCounty.style("fill",function(d){
+						var county = findCountyDataWithId(d.id);
+						if (typeof county === "undefined" || !county.diagnoses_per_hundredthousand){
+							return '#bcbcbc';
+						}
+						
+						var maxval = findMaxInState(county.state,"diagnoses_per_hundredthousand");
+						var minval = findMinInState(county.state,"diagnoses_per_hundredthousand");
+						//var color = d3.scaleLinear().domain([minval,maxval]).range(["#fdf2f4","#ae5965"]);
+						var color = d3.scaleQuantize().domain([0,1]).range(["#fdf2f4","#f9ced4","#F39da9","#ef798a","#ae5965"]);
+						
+						ratio = county.diagnoses_per_hundredthousand/maxval;
+					
+						return color(ratio);
+					});
+					break;
+				case "hiv_prevalence":
+					selectedCounty.style("fill",function(d){
+						var county = findCountyDataWithId(d.id);
+						if (typeof county === "undefined" || !county.prevalence_per_hundredthousand){
+							return '#bcbcbc';
+						}
+						
+						var maxval = findMaxInState(county.state,"prevalence_per_hundredthousand");
+						var minval = findMinInState(county.state,"prevalence_per_hundredthousand");
+						//var color = d3.scaleLinear().domain([minval,maxval]).range(["#fdf2f4","#ae5965"]);
+						var color = d3.scaleQuantize().domain([0,1]).range(["#fdf2f4","#f9ced4","#F39da9","#ef798a","#ae5965"]);
+						
+						ratio = county.prevalence_per_hundredthousand/maxval;
+					
+						return color(ratio);
+					});
+					break;
+				case "household_income":
+					selectedCounty.style("fill",function(d){
+						var county = findCountyDataWithId(d.id);
+						if (typeof county === "undefined" || !county.household_Income){
+							return '#bcbcbc';
+						}
+						
+						var maxval = findMaxInState(county.state,"household_Income");
+						var minval = findMinInState(county.state,"household_Income");
+						//var color = d3.scaleLinear().domain([minval,maxval]).range(["#fdf2f4","#ae5965"]);
+						var color = d3.scaleQuantize().domain([0,1]).range(["#fdf2f4","#f9ced4","#F39da9","#ef798a","#ae5965"]);
+						
+						ratio = county.household_Income/maxval;
+					
+						return color(ratio);
+					});
+					break;
+				case "population":
+					selectedCounty.style("fill",function(d){
+						var county = findCountyDataWithId(d.id);
+						if (typeof county === "undefined" || !county.population){
+							return '#bcbcbc';
+						}
+						
+						var maxval = findMaxInState(county.state,"population");
+						var minval = findMinInState(county.state,"population");
+						//var color = d3.scaleLinear().domain([minval,maxval]).range(["#fdf2f4","#ae5965"]);
+						var color = d3.scaleQuantile().domain([0,1]).range(["#fdf2f4","#f9ced4","#F39da9","#ef798a","#ae5965"]);
+						
+						ratio = county.population/maxval;
+					
+						return color(ratio);
+					});
+					break;
+				case "vote_percentage":
+					selectedCounty.style("fill",function(d){
+						var county = findCountyDataWithId(d.id);
+						if (typeof county === "undefined" || !county.vote_percentage){
+							return '#bcbcbc';
+						}
+						
+						//var maxval = findMaxInState(county.state,"vote_percentage");
+						var color = d3.scaleQuantize().domain([0,1]).range(["#fdf2f4","#f9ced4","#F39da9","#ef798a","#ae5965"]);
+						ratio = county.vote_percentage;
+						
+					
+						return color(ratio);
+					});
+					break;
+				case "data_suppressed":
+					selectedCounty.style("fill",function(d){
+						var county = findCountyDataWithId(d.id);
+						if (typeof county === "undefined"){
+							return '#bcbcbc';
+						}
+						if(county.num_of_diagnoses_cases == false && county.num_of_prevalence_cases ==false){
+							return '#bcbcbc';
+						}
+						else{
+							return '#fd2c2c';
+						}
+					});
+					break;
+				default:
+					break;
+			}
+		}
+		
 		selectedCounty = false;
 		selectedCounties = [];
 		function addCounties(state){
@@ -237,19 +372,11 @@
 					d3.select(this).classed("selected",(selectedCounties.indexOf(d.id)>=0));
 				})
 				.on("mouseover",function(d){
-					console.log(d);
+					//console.log(d);
 					hoveredCounty(d);
-				})
-				.style('fill', function(d){
-					var county = findCountyDataWithId(d.id);
-					if(county.num_of_diagnoses_cases == false && county.num_of_prevalence_cases ==false){
-						return '#bcbcbc';
-					}
-					else{
-						return '#fd2c2c';
-
-					}
 				});
+				
+				colorCountiesBy(lastColoredBy);
 			// selectedCountyBorders = allg.append("path")
 			// 	.attr("class", "county-borders")
 			// 	.attr("d", path(topojson.mesh(us, us.objects.counties, function(a, b) {
@@ -281,6 +408,14 @@
 		function toggleCountySelected(county){
 			if (selectedCounties.indexOf(county.id) >= 0){
 				selectedCounties.splice(selectedCounties.indexOf(county.id),1);
+				for (var i=drawnLocalGraphs.length-1; i>=0; i--){
+					var drawnlocal = drawnLocalGraphs[i];
+					if (drawnlocal.id == county.id && !drawnlocal.fromhover) {
+						drawnlocal.graph.remove();
+						drawnLocalGraphs.splice(i,1);
+						break;
+					}
+				}
 				return;
 			}
 			drawLocalGraph(county);
@@ -334,6 +469,7 @@
 					
 				var orderOfData = [
 					{key:"population",title:"Population: "},
+					{key:"household_Income",title:"Household Income: $"},
 					{key:"vote_parsed",title:"Percentage Voted: "},
 					{key:"diagnoses_per_hundredthousand",title:"Diagnoses per 100,000: "},
 					{key:"prevalence_per_hundredthousand",title:"Prevalence per 100,000: "}
@@ -384,7 +520,7 @@
 				  y = centroid[1];
 				  k = (state=="California"||state=="Texas")?2:4;
 				  centered = d;
-				  returnText.style("display","block");
+				  countyText.style("display","block");
 				} else {
 					return;
 				}
@@ -414,7 +550,8 @@
 			x = width / 2;
 			y = height / 2;
 			k = 1;
-			returnText.style("display","none");
+			countyText.style("display","none");
+			
 			
 			selectedCounty.remove();
 			selectedCountyBorders.remove();
@@ -430,16 +567,77 @@
 			clearLocalGraphs();
 		}
 		
-		var returnText = svg.append('text')
+		var countyText = svg.append('g').style("display","none");
+		
+		countyText.append("text")
 			.attr("x",width-200)
 			.attr("y",height-32)
 			.attr("class","returntext")
 			.attr("font-size","16px")
 			.style("fill","white")
-			.style("display","none")
 			.text('Return to country view')
 			.on("click",function(){
 				resetView();
+			});
+			countyText.append('text')
+			.attr("x",width-200)
+			.attr("y",height-56)
+			.attr("class","returntext")
+			.attr("font-size","16px")
+			.style("fill","white")
+			.text('Color by data availablity')
+			.on("click",function(){
+				colorCountiesBy("data_suppressed");
+			});
+			countyText.append('text')
+			.attr("x",width-200)
+			.attr("y",height-80)
+			.attr("class","returntext")
+			.attr("font-size","16px")
+			.style("fill","white")
+			.text('Color by population')
+			.on("click",function(){
+				colorCountiesBy("population");
+			});
+			countyText.append('text')
+			.attr("x",width-200)
+			.attr("y",height-104)
+			.attr("class","returntext")
+			.attr("font-size","16px")
+			.style("fill","white")
+			.text('Color by voter percentage')
+			.on("click",function(){
+				colorCountiesBy("vote_percentage");
+			});
+			countyText.append('text')
+			.attr("x",width-200)
+			.attr("y",height-128)
+			.attr("class","returntext")
+			.attr("font-size","16px")
+			.style("fill","white")
+			.text('Color by household income')
+			.on("click",function(){
+				colorCountiesBy("household_income");
+			});
+			countyText.append('text')
+			.attr("x",width-200)
+			.attr("y",height-152)
+			.attr("class","returntext")
+			.attr("font-size","16px")
+			.style("fill","white")
+			.text('Color by HIV prevalence')
+			.on("click",function(){
+				colorCountiesBy("hiv_prevalence");
+			});
+			countyText.append('text')
+			.attr("x",width-200)
+			.attr("y",height-176)
+			.attr("class","returntext")
+			.attr("font-size","16px")
+			.style("fill","white")
+			.text('Color by HIV diagnoses')
+			.on("click",function(){
+				colorCountiesBy("hiv_diagnoses");
 			});
   });
 d3.queue()
@@ -478,10 +676,12 @@ county_id = county_obj.id;
 	hivData.forEach(function(hiv_obj){
 	
 		if(county_id == hiv_obj.FIPS){
-			if (obj.population !== null){
-				obj.population = parseFloat((hiv_obj.Population).replace(/,/g, ''));
-				obj.vote_percentage = obj.total_votes/obj.population;
-				obj.vote_parsed = (obj.vote_percentage * 100).toFixed(2);
+			if (obj.population != "null"){
+				if (parseFloat((hiv_obj.Population).replace(/,/g, ''))){obj.population = parseFloat((hiv_obj.Population).replace(/,/g, ''));}
+				if (obj.population && obj.total_votes){
+					obj.vote_percentage = obj.total_votes/obj.population;
+					obj.vote_parsed = (obj.vote_percentage * 100).toFixed(2);
+				}
 			}
 			if (hiv_obj.Indicator == "HIV diagnoses"){
 				obj.num_of_diagnoses_cases = (hiv_obj.Cases=="Data suppressed")?false:parseFloat((hiv_obj.Cases).replace(/,/g, ''));
@@ -545,9 +745,8 @@ d3.select(".states").selectAll('path').data(states).style('fill',
 	
 	}
 	
-}
- );
-
+});
+loadingtext.remove();
 });
 
 
